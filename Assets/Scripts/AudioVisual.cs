@@ -15,16 +15,14 @@ public class AudioVisual : MonoBehaviour
     public float smoothing = 20.0f; //buffer for smoother animation
     public float keep = 0.1f;
 
-    public float bpm; 
+    public int bpm;
+    public float currSongTime;
+    public bool isOnBeat;
+    public bool spike;
 
     private AudioSource source;
     private float[] samples;
-    private float[] spectrum;
-    private float[] curSpectrum;
-    private float[] prevSpectrum; //PREV SPECTRUM IN ORDER TO GET SPECTRAL FLUX, COMPARE
-    private List<SpectralFluxInfo> spectralFluxSamples;
-    private int thresholdWindowSize = 30;
-    private int thresholdMultiplier = 10;
+    public float[] spectrum;
     private float sampleRate;
 
     private Transform[] cubeTransform; //contains transforms of cubes
@@ -34,6 +32,9 @@ public class AudioVisual : MonoBehaviour
     private Transform[] rmsTransform; //transform for rms
     private Transform[] dbTransform;
     private Transform[] pitchTransform;
+    private Transform[] beatTransform;
+
+    private GameObject[] colorCubes;
 
     //FLYING OBJECTS
     private Transform cameraTransform; //store position of camera
@@ -43,6 +44,7 @@ public class AudioVisual : MonoBehaviour
     private int numFlying = 50; //number of flying objects
     private float c = 30; //variance of final pos
     private int farBack = 200; //how far back objects spawn
+
 
     // Start is called before the first frame update
     void Start()
@@ -54,17 +56,17 @@ public class AudioVisual : MonoBehaviour
         source = GetComponent<AudioSource>();
         samples = new float[SAMPLE_SIZE];
         spectrum = new float[SAMPLE_SIZE];
-        curSpectrum = new float[SAMPLE_SIZE];
-        prevSpectrum = new float[SAMPLE_SIZE];
-        spectralFluxSamples = new List<SpectralFluxInfo>();
         sampleRate = AudioSettings.outputSampleRate;
+
 
         InstantiateCircle(); //creates circle at center of screen
         InstantiateRMSDBCube();
         //InstantiateFlying();
 
-        bpm = BPMAnalyzer.finalBPM;
-        
+        bpm = BPMAnalyzer.AnalyzeBpm(source.clip);
+
+        Debug.Log(string.Format("what is bpm: {0}", bpm));
+
     }
 
     void InstantiateCircle()
@@ -73,7 +75,7 @@ public class AudioVisual : MonoBehaviour
         cubeTransform = new Transform[numVisObjects];
 
         Vector3 center = Vector3.zero;
-        float radius = 10.0f; 
+        float radius = 10.0f;
 
         for (int i = 0; i < numVisObjects; i++)
         {
@@ -96,18 +98,26 @@ public class AudioVisual : MonoBehaviour
         rmsTransform = new Transform[1];
         dbTransform = new Transform[1];
         pitchTransform = new Transform[1];
+        beatTransform = new Transform[1];
+        colorCubes = new GameObject[1];
 
         GameObject rmsgo = GameObject.CreatePrimitive(PrimitiveType.Cube) as GameObject;
-        rmsgo.transform.position = new Vector3(-2, 0, 0);
+        rmsgo.transform.position = new Vector3(-4, 0, 0);
         rmsTransform[0] = rmsgo.transform;
 
         GameObject dbgo = GameObject.CreatePrimitive(PrimitiveType.Cube) as GameObject;
-        dbgo.transform.position = new Vector3(0, 0, 0);
+        dbgo.transform.position = new Vector3(-2, 0, 0);
         dbTransform[0] = dbgo.transform;
 
         GameObject pitchgo = GameObject.CreatePrimitive(PrimitiveType.Cube) as GameObject;
-        pitchgo.transform.position = new Vector3(2, 0, 0);
+        pitchgo.transform.position = new Vector3(0, 0, 0);
         pitchTransform[0] = pitchgo.transform;
+
+        GameObject beatgo = GameObject.CreatePrimitive(PrimitiveType.Cube) as GameObject;
+        beatgo.transform.position = new Vector3(2, 0, 0);
+        beatTransform[0] = beatgo.transform;
+
+        colorCubes[0] = beatgo;
     }
 
     void InstantiateFlying() //MUST CALL THIS EVERY SET NUMBER OF MINUTES
@@ -136,16 +146,26 @@ public class AudioVisual : MonoBehaviour
         AnalyzeSound();
         UpdateVisual();
         UpdateRMS();
-        analyzeSpectrum(spectrum, source.time);
+        UpdateBeat();
         //UpdateFlying();
     }
 
     void UpdateVisual() //modify scale of objects
     {
+        if (DB < 0)
+        {
+            if (Mathf.Abs(Mathf.Abs(DB) - RMS) < 0.5)
+            {
+                //changeColor();//****************************************************************************************************************************************
+            }
+        } else if (DB > RMS)
+        { 
+            //changeColor(); //****************************************************************************************************************************************
+        }
         int index = 0;
         int spectrumIndex = 0;
         //only keep certain percentage so not every bar is flat/boring
-        int averageSize = (int)((SAMPLE_SIZE * keep) / numVisObjects); 
+        int averageSize = (int)((SAMPLE_SIZE * keep) / numVisObjects);
 
         while (index < numVisObjects)
         {
@@ -166,11 +186,20 @@ public class AudioVisual : MonoBehaviour
 
             //if at max size, snap up
             if (scaleFactor[index] > maxScale)
+            {
+                //changeColor(); //****************************************************************************************************************************************
                 scaleFactor[index] = maxScale;
+            } 
 
-            cubeTransform[index].localScale = Vector3.one + Vector3.up * scaleFactor[index];
+
+                cubeTransform[index].localScale = Vector3.one + Vector3.up * scaleFactor[index];
             index++;
         }
+    }
+
+    void changeColor()
+    {
+        colorCubes[0].GetComponent<Renderer>().material.color = UnityEngine.Random.ColorHSV();
     }
 
     void UpdateRMS()
@@ -194,10 +223,30 @@ public class AudioVisual : MonoBehaviour
             flyingObjects[i].localPosition = Vector3.MoveTowards(flyingObjects[i].position, finalPos[i], flyingSpeed * Time.deltaTime);
         }
     }
+
+    void UpdateBeat()
+    {
+        //if (AudioProcessor.isOnBeat == true)
+        //    beatTransform[0].localScale = Vector3.one + Vector3.up *5;
+        //else
+        //    beatTransform[0].localScale = Vector3.one + Vector3.up * 1;
+        if (SpectralFluxAnalyzer.isOnBeat == true)
+            colorCubes[0].GetComponent<Renderer>().material.color = UnityEngine.Random.ColorHSV();
+        //if (spike == true)
+        //{
+        //    colorCubes[0].GetComponent<Renderer>().material.color = UnityEngine.Random.ColorHSV();
+        //}
+        //if (onBeat() == true)
+        //{
+        //    colorCubes[0].GetComponent<Renderer>().material.color = UnityEngine.Random.ColorHSV();
+        //}
+    }
     void AnalyzeSound()
     {
         //get sound spectrum
         source.GetSpectrumData(spectrum, 0, FFTWindow.BlackmanHarris);
+
+   
 
         source.GetOutputData(samples, 0); //samples array is modified
         //get RMS
@@ -223,7 +272,7 @@ public class AudioVisual : MonoBehaviour
         }
 
         float freqN = maxN;
-        if(maxN > 0 && maxN < SAMPLE_SIZE - 1)
+        if (maxN > 0 && maxN < SAMPLE_SIZE - 1)
         {
             var dL = spectrum[maxN - 1] / spectrum[maxN];
             var dR = spectrum[maxN + 1] / spectrum[maxN];
@@ -233,107 +282,17 @@ public class AudioVisual : MonoBehaviour
 
     }
 
-    //**************************************************************************
-
-    public class SpectralFluxInfo
+    bool onBeat()
     {
-        public float time;
-        public float spectralFlux;
-        public float threshold;
-        public float prunedSpectralFlux;
-        public bool isPeak;
-    }
-    public void setCurSpectrum(float[] spectrum)
-    {
-        curSpectrum.CopyTo(prevSpectrum, 0);
-        spectrum.CopyTo(curSpectrum, 0);
-    }
-
-    float calculateRectifiedSpectralFlux()
-    {
-        float sum = 0f;
-
-        // Aggregate positive changes in spectrum data
-        for (int i = 0; i < SAMPLE_SIZE; i++)
-        {
-            sum += Mathf.Max(0f, curSpectrum[i] - prevSpectrum[i]);
-        }
-        return sum;
-    }
-
-    float getFluxThreshold(int spectralFluxIndex)
-    {
-        // How many samples in the past and future we include in our average
-        int windowStartIndex = Mathf.Max(0, spectralFluxIndex - thresholdWindowSize / 2);
-        int windowEndIndex = Mathf.Min(spectralFluxSamples.Count - 1, spectralFluxIndex + thresholdWindowSize / 2);
-
-        // Add up our spectral flux over the window
-        float sum = 0f;
-        for (int i = windowStartIndex; i < windowEndIndex; i++)
-        {
-            sum += spectralFluxSamples[i].spectralFlux;
-        }
-
-        // Return the average multiplied by our sensitivity multiplier
-        float avg = sum / (windowEndIndex - windowStartIndex);
-        return avg * thresholdMultiplier;
-    }
-
-
-    float getPrunedSpectralFlux(int spectralFluxIndex)
-    {
-        return Mathf.Max(0f, spectralFluxSamples[spectralFluxIndex].spectralFlux - spectralFluxSamples[spectralFluxIndex].threshold);
-    }
-    bool isPeak(int spectralFluxIndex)
-    {
-        if (spectralFluxSamples[spectralFluxIndex].prunedSpectralFlux > spectralFluxSamples[spectralFluxIndex + 1].prunedSpectralFlux &&
-            spectralFluxSamples[spectralFluxIndex].prunedSpectralFlux > spectralFluxSamples[spectralFluxIndex - 1].prunedSpectralFlux)
+        currSongTime = source.time;
+        float divisor = bpm / 60;
+        float epsilon = 0.05f;
+        if (currSongTime % divisor < epsilon)
         {
             return true;
         }
-        else
-        {
-            return false;
-        }
-    }
+        return false;
 
-
-    public void analyzeSpectrum(float[] spectrum, float time)
-    {
-        // Set spectrum
-        setCurSpectrum(spectrum);
-
-        // Get current spectral flux from spectrum
-        SpectralFluxInfo curInfo = new SpectralFluxInfo();
-        curInfo.time = time;
-        curInfo.spectralFlux = calculateRectifiedSpectralFlux();
-        spectralFluxSamples.Add(curInfo);
-
-        // We have enough samples to detect a peak
-        if (spectralFluxSamples.Count >= thresholdWindowSize)
-        {
-            int indexToProcess = thresholdWindowSize / 2;
-            // Get Flux threshold of time window surrounding index to process
-            spectralFluxSamples[indexToProcess].threshold = getFluxThreshold(indexToProcess);
-
-            // Only keep amp amount above threshold to allow peak filtering
-            spectralFluxSamples[indexToProcess].prunedSpectralFlux = getPrunedSpectralFlux(indexToProcess);
-
-            // Now that we are processed at n, n-1 has neighbors (n-2, n) to determine peak
-            int indexToDetectPeak = indexToProcess - 1;
-
-            bool curPeak = isPeak(indexToDetectPeak);
-
-            if (curPeak)
-            {
-                spectralFluxSamples[indexToDetectPeak].isPeak = true;
-            }
-            indexToProcess++;
-        }
-        else
-        {
-            Debug.Log(string.Format("Not ready yet.  At spectral flux sample size of {0} growing to {1}", spectralFluxSamples.Count, thresholdWindowSize));
-        }
     }
 
 }

@@ -14,7 +14,7 @@ using UnityEngine;
 public class BPMAnalyzer : MonoBehaviour
 {
 
-    public static int finalBPM = 0;
+    public static int finalBPM;
     public AudioSource source;
     #region CONST
 

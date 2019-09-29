@@ -15,10 +15,11 @@ public class SpectralFluxInfo
 public class SpectralFluxAnalyzer : MonoBehaviour
 {
     int numSamples = 1024;
+    public static bool isOnBeat;
 
     // Sensitivity multiplier to scale the average threshold.
     // In this case, if a rectified spectral flux sample is > 1.5 times the average, it is a peak
-    float thresholdMultiplier = 1.5f;
+    float thresholdMultiplier =3.5f;
 
     // Number of samples to average in our window
     int thresholdWindowSize = 50;
@@ -75,13 +76,17 @@ public class SpectralFluxAnalyzer : MonoBehaviour
             if (curPeak)
             {
                 spectralFluxSamples[indexToDetectPeak].isPeak = true;
-                Debug.Log(string.Format("DETECTED PEAK"));
+                //Debug.Log(string.Format("DETECTED PEAK"));
+                isOnBeat = true;
+            } else
+            {
+                isOnBeat = false;
             }
             indexToProcess++;
         }
         else
         {
-            Debug.Log(string.Format("Not ready yet.  At spectral flux sample size of {0} growing to {1}", spectralFluxSamples.Count, thresholdWindowSize));
+            //Debug.Log(string.Format("Not ready yet.  At spectral flux sample size of {0} growing to {1}", spectralFluxSamples.Count, thresholdWindowSize));
         }
     }
 
@@ -89,8 +94,12 @@ public class SpectralFluxAnalyzer : MonoBehaviour
     {
         float sum = 0f;
 
+        float hertzPerBin = (float)AudioSettings.outputSampleRate / 2f / 1024;
+        int start = (int) (60 / hertzPerBin);
+        int end = (int) (250 / hertzPerBin);
+
         // Aggregate positive changes in spectrum data
-        for (int i = 0; i < numSamples; i++)
+        for (int i = start; i < end; i++)
         {
             sum += Mathf.Max(0f, curSpectrum[i] - prevSpectrum[i]);
         }
