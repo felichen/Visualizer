@@ -38,13 +38,6 @@ public class AudioVisual : MonoBehaviour
 
     //FLYING OBJECTS
     private Transform cameraTransform; //store position of camera
-    public Transform[] flyingObjects;
-    public Vector3[] finalPos;
-    private float flyingSpeed = 50.0f;
-    private int numFlying = 50; //number of flying objects
-    private float c = 30; //variance of final pos
-    private int farBack = 200; //how far back objects spawn
-
 
     // Start is called before the first frame update
     void Start()
@@ -120,34 +113,13 @@ public class AudioVisual : MonoBehaviour
         colorCubes[0] = beatgo;
     }
 
-    void InstantiateFlying() //MUST CALL THIS EVERY SET NUMBER OF MINUTES
-    {
-        flyingObjects = new Transform[numFlying];
-        finalPos = new Vector3[numFlying];
-
-        for (int i = 0; i < numFlying; i++)
-        {
-            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Sphere) as GameObject;
-            go.transform.localScale *= 3;
-            go.transform.position = new Vector3(0, 0, farBack);
-            flyingObjects[i] = go.transform;
-
-            //choose final position
-            Vector3 cam = cameraTransform.position;
-            float x = Random.Range(cam.x - c, cam.x + c);
-            float y = Random.Range(cam.y - c, cam.y + c);
-            Vector3 end = new Vector3(x, y, cam.z - 10);
-            finalPos[i] = end;
-        }
-    }
     // Update is called once per frame
     void Update()
     {
         AnalyzeSound();
         UpdateVisual();
         UpdateRMS();
-        UpdateBeat();
-        //UpdateFlying();
+        //UpdateBeat();
     }
 
     void UpdateVisual() //modify scale of objects
@@ -187,7 +159,11 @@ public class AudioVisual : MonoBehaviour
             //if at max size, snap up
             if (scaleFactor[index] > maxScale)
             {
-                //changeColor(); //****************************************************************************************************************************************
+                //ONLY DETECT CERTAIN BINS
+                if (index >= 5 && index <= 10)
+                {
+                    changeColor(); //****************************************************************************************************************************************
+                }
                 scaleFactor[index] = maxScale;
             } 
 
@@ -215,14 +191,6 @@ public class AudioVisual : MonoBehaviour
         pitchTransform[0].localScale = Vector3.one + Vector3.up * PITCH / 100;
     }
 
-    void UpdateFlying()
-    {
-        float c = 100;
-        for (int i = 0; i < numFlying; i++)
-        {
-            flyingObjects[i].localPosition = Vector3.MoveTowards(flyingObjects[i].position, finalPos[i], flyingSpeed * Time.deltaTime);
-        }
-    }
 
     void UpdateBeat()
     {
@@ -230,6 +198,8 @@ public class AudioVisual : MonoBehaviour
         //    beatTransform[0].localScale = Vector3.one + Vector3.up *5;
         //else
         //    beatTransform[0].localScale = Vector3.one + Vector3.up * 1;
+
+        //USE FIRST ONE
         if (SpectralFluxAnalyzer.isOnBeat == true)
             colorCubes[0].GetComponent<Renderer>().material.color = UnityEngine.Random.ColorHSV();
         //if (spike == true)

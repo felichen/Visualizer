@@ -97,6 +97,7 @@ public class SpectralFluxAnalyzer : MonoBehaviour
         float hertzPerBin = (float)AudioSettings.outputSampleRate / 2f / 1024;
         int start = (int) (60 / hertzPerBin);
         int end = (int) (250 / hertzPerBin);
+        //Debug.Log(string.Format("start: {0}", start));
 
         // Aggregate positive changes in spectrum data
         for (int i = start; i < end; i++)
