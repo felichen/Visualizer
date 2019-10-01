@@ -21,12 +21,14 @@ public class ParamCube : MonoBehaviour
     {
         if (_useBuffer)
         {
-            transform.localScale = new Vector3(transform.localScale.x, (_audioPeer._bandBuffer[_band] * _scaleMultiplier) + _startScale, transform.localScale.z);
+            //transform.localScale = new Vector3(transform.localScale.x, (_audioPeer._bandBuffer[_band] * _scaleMultiplier) + _startScale, transform.localScale.z);
+            transform.localScale = new Vector3(transform.localScale.x, (_audioPeer._AmplitudeBuffer * _scaleMultiplier) + _startScale, transform.localScale.z);
             currScale = transform.localScale.y;
-            if (transform.localScale.y >= 10)
-            {
-                this.GetComponent<Renderer>().material.color = UnityEngine.Random.ColorHSV();
-            }
+            //if (transform.localScale.y >= 10)
+            //{
+            //    this.GetComponent<Renderer>().material.color = UnityEngine.Random.ColorHSV();
+            //}
+            //set color intensitytoo
         } else
         {
             transform.localScale = new Vector3(transform.localScale.x, (_audioPeer._freqBand[_band] * _scaleMultiplier) + _startScale, transform.localScale.z);

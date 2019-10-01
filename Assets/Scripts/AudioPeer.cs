@@ -8,8 +8,8 @@ public class AudioPeer : MonoBehaviour
 
     //8 OR 64; THE FREQUENCY BANDS REPRESENTS SPECIFIC SUBSET OF FREQUENCIES, LIKE BASS, SUB-BASS, ETC
     AudioSource _audioSource;
-    private float[] _samplesLeft = new float[512];
-    private float[] _samplesRight = new float[512];
+    public float[] _samplesLeft = new float[1024];
+    public float[] _samplesRight = new float[1024];
 
     public float[] _freqBand = new float[8];
     public float[] _bandBuffer = new float[8];
@@ -39,6 +39,8 @@ public class AudioPeer : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        GameObject.Find("Main Camera").transform.position = new Vector3(0, 0, -65);
+        GameObject.Find("Particle System").transform.position = new Vector3(0, 0, -30);
         _audioBand = new float[8];
         _audioBandBuffer = new float[8];
         _audioBand64 = new float[64];
@@ -154,11 +156,32 @@ public class AudioPeer : MonoBehaviour
 
     void MakeFrequencyBands()
     {
+        /*
+         * 22050 / 1024 = 21.5
+         * 20 - 60
+         * 60-250
+         * 250-500
+         * 500-2000
+         * 2000-4000
+         * 4000-6000
+         * 6000-20000
+         * 
+         * 0 - 4  = 86 
+         * 1 - 8 = 
+         * 2 - 16
+         * 3 - 32
+         * 4 - 64
+         * 5 - 128
+         * 6 - 256
+         * 7 - 512
+         */
+
+        Debug.Log(string.Format("arraylength: {0}", _samplesLeft.Length));
         int count = 0;
         for (int i = 0; i < 8; i++)
         {
             float average = 0;
-            int sampleCount = (int)Mathf.Pow(2, i) * 2;
+            int sampleCount = (int)Mathf.Pow(2, i) * 4;
             if (i == 7)
             {
                 sampleCount += 2;
@@ -188,6 +211,14 @@ public class AudioPeer : MonoBehaviour
 
     void MakeFrequencyBands64()
     {
+        /*
+         * 0-15 = 2 = 32
+         * 16-31 = 4 = 64
+         * 32-39 = 8 = 64
+         * 40-47 = 12 = 96
+         * 48-55 = 32 = 256
+         * 56-63 = 64 = 512
+         */
         int count = 0;
         int sampleCount = 1;
         int power = 0;
@@ -198,7 +229,7 @@ public class AudioPeer : MonoBehaviour
             if (i == 16 || i == 32 || i == 40 || i ==48 || i == 56)
             {
                 power++;
-                sampleCount = (int)Mathf.Pow(2, power);
+                sampleCount = (int)Mathf.Pow(2, power) * 2;
                 if (power == 3)
                 {
                     sampleCount -= 2;

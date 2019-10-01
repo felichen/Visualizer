@@ -37,22 +37,35 @@ public class Phyllotaxis : MonoBehaviour
     }
 
     private Vector2 _phyllotaxisPosition;
+    private bool _forward;
+    public bool _repeat;
+    public bool _invert;
+
+    //Scaling
+    public bool _useScaleAnimation, _useScaleCurve;
+    public Vector2 _scaleAnimMinMax;
+    public AnimationCurve _scaleAnimCurve;
+    public float _scaleAnimSpeed;
+    public int _scaleBand;
+    private float _scaleTimer, _currentScale;
 
     void SetLerpPositions()
     {
-        _phyllotaxisPosition = CalculatePhyllotaxis(_degree, _scale, _number);
+        _phyllotaxisPosition = CalculatePhyllotaxis(_degree, _currentScale, _number);
         _startPosition = this.transform.localPosition;
         _endPosition = new Vector3(_phyllotaxisPosition.x, _phyllotaxisPosition.y, 0);
     }
 
     private void Awake()
     {
+        _currentScale = _scale;
+        _forward = true;
         _trailRenderer = GetComponent<TrailRenderer>();
         _trailMat = new Material(_trailRenderer.material);
         _trailMat.SetColor("_TintColor", _trailcolor);
         _trailRenderer.material = _trailMat;
         _number = _numberStart;
-        transform.localPosition = CalculatePhyllotaxis(_degree, _scale, _number);
+        transform.localPosition = CalculatePhyllotaxis(_degree, _currentScale, _number);
         if (_useLerping)
         {
             _isLerping = true;
@@ -62,6 +75,21 @@ public class Phyllotaxis : MonoBehaviour
 
     private void Update()
     {
+        if (_useScaleAnimation)
+        {
+            if (_useScaleCurve)
+            {
+                _scaleTimer += (_scaleAnimSpeed * _audioPeer._audioBand[_scaleBand]) * Time.deltaTime;
+                if (_scaleTimer >= 1)
+                {
+                    _scaleTimer -= 1;
+                }
+                _currentScale = Mathf.Lerp(_scaleAnimMinMax.x, _scaleAnimMinMax.y, _scaleAnimCurve.Evaluate(_scaleTimer));
+            } else
+            {
+                _currentScale = Mathf.Lerp(_scaleAnimMinMax.x, _scaleAnimMinMax.y, _audioPeer._audioBand[_scaleBand]);
+            }
+        }
         if (_useLerping)
         {
             if (_isLerping)
@@ -72,64 +100,49 @@ public class Phyllotaxis : MonoBehaviour
                 if (_lerpPosTimer >= 1)
                 {
                     _lerpPosTimer -= 1;
-                    _number += _stepSize;
-                    _currentIteration++;
-                    SetLerpPositions();
+                    if (_forward)
+                    {
+                        _number += _stepSize;
+                        _currentIteration++;
+                    } else
+                    {
+                        _number -= _stepSize;
+                        _currentIteration--;
+                    }
+                    if (_currentIteration > 0 && _currentIteration < _maxIteration)
+                    {
+                        SetLerpPositions();
+                    }
+                    else // current iter has hit 0 or max
+                    {
+                        if (_repeat)
+                        {
+                            if (_invert)
+                            {
+                                _forward = !_forward;
+                                SetLerpPositions();
+                            } else
+                            {
+                                _number = _numberStart;
+                                _currentIteration = 0;
+                                SetLerpPositions();
+                            }
+                        } else
+                        {
+                            _isLerping = false;
+                        }
+                    }
                 }
        
             }
         }
         if (!_useLerping)
         {
-            _phyllotaxisPosition = CalculatePhyllotaxis(_degree, _scale, _number);
+            _phyllotaxisPosition = CalculatePhyllotaxis(_degree, _currentScale, _number);
             transform.localPosition = new Vector3(_phyllotaxisPosition.x, _phyllotaxisPosition.y, 0);
             _number += _stepSize;
             _currentIteration++;
         }
     }
 
-    //private void FixedUpdate()
-    //{
-    //    if (_useLerping)
-    //    {
-    //        if(_isLerping)
-    //        {
-    //            float timeSinceStarted = Time.time - _timeStartedLerping;
-    //            float percentageComplete = timeSinceStarted / _intervalLerp;
-    //            transform.localPosition = Vector3.Lerp(_startPosition, _endPosition, percentageComplete);
-    //            if(percentageComplete >= 0.97f)
-    //            {
-    //                transform.localPosition = _endPosition;
-    //                _number += _stepSize;
-    //                _currentIteration++;
-    //                if (_currentIteration <= _maxIteration)
-    //                {
-    //                    StartLerping();
-    //                } else
-    //                {
-    //                    _isLerping = false;
-    //                }
-    //            }
-    //        }
-    //    } else
-    //    {
-    //        _phyllotaxisPosition = CalculatePhyllotaxis(_degree, _scale, _number);
-    //        transform.localPosition = new Vector3(_phyllotaxisPosition.x, _phyllotaxisPosition.y, 0);
-    //        _number+= _stepSize;
-    //        _currentIteration++;
-    //    }
-    //}
-
-    //// Update is called once per frame
-    //void Update()
-    //{
-    // if (Input.GetKey(KeyCode.Space))
-    //    {
-    //        _phyllotaxisPosition = CalculatePhyllotaxis(_degree, _scale, _number);
-    //        GameObject dotInstance =(GameObject)Instantiate(_dot);
-    //        dotInstance.transform.position = new Vector3(_phyllotaxisPosition.x, _phyllotaxisPosition.y, 0);
-    //        dotInstance.transform.localScale = new Vector3(_dotScale, _dotScale, _dotScale);
-    //        _number++;
-    //    }
-    //}
 }

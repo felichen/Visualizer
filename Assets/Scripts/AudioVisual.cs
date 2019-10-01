@@ -2,8 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
+//MAPPINGS
+//SIZE OF OBJECTS IN BACKGROUND CAN GROW/SHRINK BASED ON: audiopeer's average amplitude, or certain frequency bins
+//COLOR CHANGE BASED ON: different frequency bin spikes find colorchange)
 public class AudioVisual : MonoBehaviour
 {
+    public AudioPeer _audioPeer;
+    ParticleSystem particles;
+    ParticleSystemRenderer psRenderer;
     private const int SAMPLE_SIZE = 1024;
 
     public float RMS; //avg output of sound
@@ -14,6 +21,7 @@ public class AudioVisual : MonoBehaviour
     public float visualModifier = 175.0f;
     public float smoothing = 20.0f; //buffer for smoother animation
     public float keep = 0.1f;
+    public float rotationSpeed = 10f;
 
     public int bpm;
     public float currSongTime;
@@ -25,8 +33,10 @@ public class AudioVisual : MonoBehaviour
     public float[] spectrum;
     private float sampleRate;
 
+    GameObject circleParent;
     private Transform[] cubeTransform; //contains transforms of cubes
     private float[] scaleFactor;
+    private float cubeWidth = 0.2f;
     private int numVisObjects = 64; //amount of objects
 
     private Transform[] rmsTransform; //transform for rms
@@ -38,12 +48,25 @@ public class AudioVisual : MonoBehaviour
 
     //FLYING OBJECTS
     private Transform cameraTransform; //store position of camera
+    public Transform[] flyingObjects;
+    public Vector3[] finalPos;
+    private float flyingSpeed = 50.0f;
+    private int numFlying = 50; //number of flying objects
+    private float c = 30; //variance of final pos
+    private int farBack = 200; //how far back objects spawn
 
     // Start is called before the first frame update
     void Start()
     {
         GameObject.Find("Main Camera").transform.position = new Vector3(0, 0, -65);
         GameObject.Find("Particle System").transform.position = new Vector3(0, 0, -30);
+        //CREATE PARENT
+        circleParent = this.transform.GetChild(0).gameObject;
+
+        GameObject ps = GameObject.Find("Particle System");
+        particles = ps.GetComponent<ParticleSystem>();
+        psRenderer = ps.GetComponent<ParticleSystemRenderer>();
+
         cameraTransform = GameObject.Find("Main Camera").transform;
 
         source = GetComponent<AudioSource>();
@@ -80,8 +103,10 @@ public class AudioVisual : MonoBehaviour
 
             Vector3 pos = center + new Vector3(x, y, 0);
             GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube) as GameObject;
+            go.transform.parent = circleParent.transform;
             go.transform.rotation = Quaternion.LookRotation(Vector3.forward, pos);
             go.transform.position = pos;
+            go.transform.localScale = new Vector3(cubeWidth, 1, 1);
             cubeTransform[i] = go.transform;
         }
     }
@@ -94,23 +119,45 @@ public class AudioVisual : MonoBehaviour
         beatTransform = new Transform[1];
         colorCubes = new GameObject[1];
 
-        GameObject rmsgo = GameObject.CreatePrimitive(PrimitiveType.Cube) as GameObject;
-        rmsgo.transform.position = new Vector3(-4, 0, 0);
-        rmsTransform[0] = rmsgo.transform;
+        //GameObject rmsgo = GameObject.CreatePrimitive(PrimitiveType.Cube) as GameObject;
+        //rmsgo.transform.position = new Vector3(-4, 0, 0);
+        //rmsTransform[0] = rmsgo.transform;
 
-        GameObject dbgo = GameObject.CreatePrimitive(PrimitiveType.Cube) as GameObject;
-        dbgo.transform.position = new Vector3(-2, 0, 0);
-        dbTransform[0] = dbgo.transform;
+        //GameObject dbgo = GameObject.CreatePrimitive(PrimitiveType.Cube) as GameObject;
+        //dbgo.transform.position = new Vector3(-2, 0, 0);
+        //dbTransform[0] = dbgo.transform;
 
-        GameObject pitchgo = GameObject.CreatePrimitive(PrimitiveType.Cube) as GameObject;
-        pitchgo.transform.position = new Vector3(0, 0, 0);
-        pitchTransform[0] = pitchgo.transform;
+        //GameObject pitchgo = GameObject.CreatePrimitive(PrimitiveType.Cube) as GameObject;
+        //pitchgo.transform.position = new Vector3(0, 0, 0);
+        //pitchTransform[0] = pitchgo.transform;
 
-        GameObject beatgo = GameObject.CreatePrimitive(PrimitiveType.Cube) as GameObject;
-        beatgo.transform.position = new Vector3(2, 0, 0);
+        GameObject beatgo = GameObject.CreatePrimitive(PrimitiveType.Sphere) as GameObject;
+        beatgo.transform.position = new Vector3(0, 0, 0);
+        beatgo.transform.localScale = new Vector3(2, 2, 2);
         beatTransform[0] = beatgo.transform;
 
         colorCubes[0] = beatgo;
+    }
+
+    void InstantiateFlying() //MUST CALL THIS EVERY SET NUMBER OF MINUTES
+    {
+        flyingObjects = new Transform[numFlying];
+        finalPos = new Vector3[numFlying];
+
+        for (int i = 0; i < numFlying; i++)
+        {
+            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Sphere) as GameObject;
+            go.transform.localScale *= 3;
+            go.transform.position = new Vector3(0, 0, farBack);
+            flyingObjects[i] = go.transform;
+
+            //choose final position
+            Vector3 cam = cameraTransform.position;
+            float x = Random.Range(cam.x - c, cam.x + c);
+            float y = Random.Range(cam.y - c, cam.y + c);
+            Vector3 end = new Vector3(x, y, cam.z - 10);
+            finalPos[i] = end;
+        }
     }
 
     // Update is called once per frame
@@ -118,22 +165,15 @@ public class AudioVisual : MonoBehaviour
     {
         AnalyzeSound();
         UpdateVisual();
-        UpdateRMS();
+        //UpdateRMS();
+        //UpdateFlying();
         //UpdateBeat();
     }
 
     void UpdateVisual() //modify scale of objects
     {
-        if (DB < 0)
-        {
-            if (Mathf.Abs(Mathf.Abs(DB) - RMS) < 0.5)
-            {
-                //changeColor();//****************************************************************************************************************************************
-            }
-        } else if (DB > RMS)
-        { 
-            //changeColor(); //****************************************************************************************************************************************
-        }
+        //ROTATE CIRCLE PARENT
+        circleParent.transform.Rotate(Vector3.forward * (rotationSpeed * Time.deltaTime));
         int index = 0;
         int spectrumIndex = 0;
         //only keep certain percentage so not every bar is flat/boring
@@ -144,7 +184,7 @@ public class AudioVisual : MonoBehaviour
             float sum = 0;
             for (int j = 0; j < averageSize; j++)
             {
-                sum += spectrum[spectrumIndex];
+                sum += _audioPeer._samplesLeft[spectrumIndex];
                 spectrumIndex++;
             }
 
@@ -159,22 +199,23 @@ public class AudioVisual : MonoBehaviour
             //if at max size, snap up
             if (scaleFactor[index] > maxScale)
             {
-                //ONLY DETECT CERTAIN BINS
-                if (index >= 5 && index <= 10)
+                //ONLY DETECT CERTAIN BINS OF FREQUENCY TO SEE IF THEY REACH MAXSCALE
+                if (index >= 5 && index <= 8)
                 {
                     changeColor(); //****************************************************************************************************************************************
                 }
                 scaleFactor[index] = maxScale;
-            } 
+            }
 
-
-                cubeTransform[index].localScale = Vector3.one + Vector3.up * scaleFactor[index];
+            //Vector3 newTrans = new Vector3(0.5f, 1, 1);
+            cubeTransform[index].localScale = new Vector3(cubeWidth, 1, 1) + Vector3.up * scaleFactor[index];
             index++;
         }
     }
 
     void changeColor()
     {
+        psRenderer.material.color = UnityEngine.Random.ColorHSV();
         colorCubes[0].GetComponent<Renderer>().material.color = UnityEngine.Random.ColorHSV();
     }
 
@@ -191,6 +232,14 @@ public class AudioVisual : MonoBehaviour
         pitchTransform[0].localScale = Vector3.one + Vector3.up * PITCH / 100;
     }
 
+    void UpdateFlying()
+    {
+        float c = 100;
+        for (int i = 0; i < numFlying; i++)
+        {
+            flyingObjects[i].localPosition = Vector3.MoveTowards(flyingObjects[i].position, finalPos[i], flyingSpeed * Time.deltaTime);
+        }
+    }
 
     void UpdateBeat()
     {
@@ -211,10 +260,11 @@ public class AudioVisual : MonoBehaviour
         //    colorCubes[0].GetComponent<Renderer>().material.color = UnityEngine.Random.ColorHSV();
         //}
     }
+
     void AnalyzeSound()
     {
         //get sound spectrum
-        source.GetSpectrumData(spectrum, 0, FFTWindow.BlackmanHarris);
+        //source.GetSpectrumData(spectrum, 0, FFTWindow.BlackmanHarris);
 
    
 
