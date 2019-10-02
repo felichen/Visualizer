@@ -11,6 +11,15 @@ public class AudioPeer : MonoBehaviour
     public float[] _samplesLeft = new float[1024];
     public float[] _samplesRight = new float[1024];
 
+
+    public float RMS; //avg output of sound
+    public float DB; //sound volume at frame
+    public float PITCH; //pitch of note
+    private float[] samples;
+    public float[] spectrum;
+    private float sampleRate;
+    private const int SAMPLE_SIZE = 1024;
+
     public float[] _freqBand = new float[8];
     public float[] _bandBuffer = new float[8];
     private float[] _bufferDecrease = new float[8];
@@ -18,7 +27,7 @@ public class AudioPeer : MonoBehaviour
 
     //audio64
     private float[] _freqBand64 = new float[64];
-    private float[] _bandBuffer64 = new float[64];
+    public float[] _bandBuffer64 = new float[64];
     private float[] _bufferDecrease64 = new float[64];
     private float[] _freqBandHighest64 = new float[64];
 
@@ -47,14 +56,18 @@ public class AudioPeer : MonoBehaviour
         _audioBandBuffer64 = new float[64];
         _audioSource = GetComponent<AudioSource>();
         AudioProfile(_audioProfile);
+
+        samples = new float[SAMPLE_SIZE];
+        spectrum = new float[SAMPLE_SIZE];
+        sampleRate = AudioSettings.outputSampleRate;
     }
 
     // Update is called once per frame
     void Update()
     {
-        GetSpectrumAudioSource();
+        AnalyzeSound();
         MakeFrequencyBands();
-        MakeFrequencyBands();
+        MakeFrequencyBands64();
         BandBuffer();
         BandBuffer64();
         CreateAudioBands();
@@ -114,10 +127,43 @@ public class AudioPeer : MonoBehaviour
         }
     }
 
-    void GetSpectrumAudioSource()
+    void AnalyzeSound()
     {
         _audioSource.GetSpectrumData(_samplesLeft, 0, FFTWindow.BlackmanHarris);
         _audioSource.GetSpectrumData(_samplesRight, 1, FFTWindow.BlackmanHarris);
+
+        _audioSource.GetOutputData(samples, 0); //samples array is modified
+        //get RMS
+        float sum = 0;
+        for (int i = 0; i < SAMPLE_SIZE; i++)
+        {
+            sum += samples[i] * samples[i];
+        }
+        RMS = Mathf.Sqrt(sum / SAMPLE_SIZE);
+
+        //get DB value 
+        DB = 20 * Mathf.Log10(RMS / 0.1f);
+
+        //get pitch
+        float maxV = 0;
+        var maxN = 0;
+        for (int i = 0; i < SAMPLE_SIZE; i++)
+        {
+            if (!(spectrum[i] > maxV) || !(spectrum[i] > 0.0f))
+                continue;
+            maxV = spectrum[i];
+            maxN = i;
+        }
+
+        float freqN = maxN;
+        if (maxN > 0 && maxN < SAMPLE_SIZE - 1)
+        {
+            var dL = spectrum[maxN - 1] / spectrum[maxN];
+            var dR = spectrum[maxN + 1] / spectrum[maxN];
+            freqN += 0.5f * (dR * dR - dL * dL);
+        }
+        PITCH = freqN * (sampleRate / 2) / SAMPLE_SIZE;
+
     }
 
     void BandBuffer()

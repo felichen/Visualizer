@@ -9,30 +9,27 @@ using UnityEngine;
 public class AudioVisual : MonoBehaviour
 {
     public AudioPeer _audioPeer;
+    public Material matRef;
     ParticleSystem particles;
     ParticleSystemRenderer psRenderer;
     private const int SAMPLE_SIZE = 1024;
-
-    public float RMS; //avg output of sound
-    public float DB; //sound volume at frame
-    public float PITCH; //pitch of note
-
     public float maxScale = 10.0f;
     public float visualModifier = 175.0f;
     public float smoothing = 20.0f; //buffer for smoother animation
     public float keep = 0.1f;
     public float rotationSpeed = 10f;
 
+
+    //BEAT DETECTION
     public int bpm;
     public float currSongTime;
     public bool isOnBeat;
     public bool spike;
 
     private AudioSource source;
-    private float[] samples;
     public float[] spectrum;
-    private float sampleRate;
 
+    //CIRCLE VISUALIZATION
     GameObject circleParent;
     private Transform[] cubeTransform; //contains transforms of cubes
     private float[] scaleFactor;
@@ -70,9 +67,7 @@ public class AudioVisual : MonoBehaviour
         cameraTransform = GameObject.Find("Main Camera").transform;
 
         source = GetComponent<AudioSource>();
-        samples = new float[SAMPLE_SIZE];
         spectrum = new float[SAMPLE_SIZE];
-        sampleRate = AudioSettings.outputSampleRate;
 
 
         InstantiateCircle(); //creates circle at center of screen
@@ -132,7 +127,8 @@ public class AudioVisual : MonoBehaviour
         //pitchTransform[0] = pitchgo.transform;
 
         GameObject beatgo = GameObject.CreatePrimitive(PrimitiveType.Sphere) as GameObject;
-        beatgo.transform.position = new Vector3(0, 0, 0);
+        beatgo.GetComponent<Renderer>().receiveShadows = false;
+        beatgo.GetComponent<Renderer>().material = matRef;
         beatgo.transform.localScale = new Vector3(2, 2, 2);
         beatTransform[0] = beatgo.transform;
 
@@ -163,7 +159,7 @@ public class AudioVisual : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        AnalyzeSound();
+        //AnalyzeSound();
         UpdateVisual();
         //UpdateRMS();
         //UpdateFlying();
@@ -221,15 +217,15 @@ public class AudioVisual : MonoBehaviour
 
     void UpdateRMS()
     {
-        rmsTransform[0].localScale = Vector3.one + Vector3.up * RMS * 100;
-        dbTransform[0].localScale = Vector3.one + Vector3.up * Mathf.Abs(DB) * 3;
+        rmsTransform[0].localScale = Vector3.one + Vector3.up * _audioPeer.RMS * 100;
+        dbTransform[0].localScale = Vector3.one + Vector3.up * Mathf.Abs(_audioPeer.DB) * 3;
         //check for negative infinity
-        if (double.IsNegativeInfinity(DB))
+        if (double.IsNegativeInfinity(_audioPeer.DB))
         {
             dbTransform[0].localScale = Vector3.one + Vector3.up * 0;
         }
 
-        pitchTransform[0].localScale = Vector3.one + Vector3.up * PITCH / 100;
+        pitchTransform[0].localScale = Vector3.one + Vector3.up * _audioPeer.PITCH / 100;
     }
 
     void UpdateFlying()
@@ -261,46 +257,6 @@ public class AudioVisual : MonoBehaviour
         //}
     }
 
-    void AnalyzeSound()
-    {
-        //get sound spectrum
-        //source.GetSpectrumData(spectrum, 0, FFTWindow.BlackmanHarris);
-
-   
-
-        source.GetOutputData(samples, 0); //samples array is modified
-        //get RMS
-        float sum = 0;
-        for (int i = 0; i < SAMPLE_SIZE; i++)
-        {
-            sum += samples[i] * samples[i];
-        }
-        RMS = Mathf.Sqrt(sum / SAMPLE_SIZE);
-
-        //get DB value 
-        DB = 20 * Mathf.Log10(RMS / 0.1f);
-
-        //get pitch
-        float maxV = 0;
-        var maxN = 0;
-        for (int i = 0; i < SAMPLE_SIZE; i++)
-        {
-            if (!(spectrum[i] > maxV) || !(spectrum[i] > 0.0f))
-                continue;
-            maxV = spectrum[i];
-            maxN = i;
-        }
-
-        float freqN = maxN;
-        if (maxN > 0 && maxN < SAMPLE_SIZE - 1)
-        {
-            var dL = spectrum[maxN - 1] / spectrum[maxN];
-            var dR = spectrum[maxN + 1] / spectrum[maxN];
-            freqN += 0.5f * (dR * dR - dL * dL);
-        }
-        PITCH = freqN * (sampleRate / 2) / SAMPLE_SIZE;
-
-    }
 
     bool onBeat()
     {

@@ -6,6 +6,7 @@ public class Controller : MonoBehaviour
 {
     public GameObject av;
     public GameObject pt;
+    public GameObject bc;
     public string a = "AudioVisual";
     public string p = "Phyllotaxis";
     // Start is called before the first frame update
@@ -14,6 +15,10 @@ public class Controller : MonoBehaviour
         pt = GameObject.Find("Phyllotaxis - Center");
         GameObject phylloParent = pt.transform.GetChild(0).gameObject;
         phylloParent.SetActive(false);
+
+        bc = GameObject.Find("Bars - Center");
+        GameObject barParent = bc.transform.GetChild(0).gameObject;
+        barParent.SetActive(false);
 
         //av = GameObject.Find("AudioVisual - Center");
         //GameObject circleParent = av.transform.GetChild(0).gameObject;
@@ -30,15 +35,25 @@ public class Controller : MonoBehaviour
             GameObject circleParent = av.transform.GetChild(0).gameObject;
             pt = GameObject.Find("Phyllotaxis - Center");
             GameObject phylloParent = pt.transform.GetChild(0).gameObject;
+            bc = GameObject.Find("Bars - Center");
+            GameObject barParent = bc.transform.GetChild(0).gameObject;
 
             if (circleParent.activeSelf)
             {
                 circleParent.SetActive(false);
                 phylloParent.SetActive(true);
-            } else
+                barParent.SetActive(false);
+            } else if (phylloParent.activeSelf)
+            {
+                barParent.SetActive(true);
+                phylloParent.SetActive(false);
+                circleParent.SetActive(false);
+            }
+            else if (barParent.activeSelf)
             {
                 circleParent.SetActive(true);
                 phylloParent.SetActive(false);
+                barParent.SetActive(false);
             }
             //if ((av.GetComponent(a) as MonoBehaviour).enabled == true) {
             //    name = (av.GetComponent(a) as MonoBehaviour).name;
