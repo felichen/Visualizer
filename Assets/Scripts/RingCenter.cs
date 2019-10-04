@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class RingCenter : MonoBehaviour
 {
-    public AudioPeer _audioPeer;
+    public AudioAnalyzer _audioAnalyzer;
     GameObject RingParent;
 
     private const int SAMPLE_SIZE = 1024;
@@ -56,7 +56,7 @@ public class RingCenter : MonoBehaviour
         {
             if (_sampleCube != null)
             {
-                _sampleCube[i].transform.localScale = new Vector3(0.1f, (_audioPeer._audioBandBuffer64[i] * _maxScale) + 2 * 0.1f, 0.1f);
+                _sampleCube[i].transform.localScale = new Vector3(0.1f, (_audioAnalyzer._audioBandBuffer64[i] * _maxScale) + 2 * 0.1f, 0.1f);
             }
         }
     }

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class BarsCenter : MonoBehaviour
 {
-    public AudioPeer _audioPeer;
+    public AudioAnalyzer _audioAnalyzer;
     GameObject BarParent;
 
     private const int SAMPLE_SIZE = 1024;
@@ -68,8 +68,8 @@ public class BarsCenter : MonoBehaviour
         {
             if (_cubesLeft != null && _cubesRight != null)
             {
-                _cubesLeft[i].transform.localScale = new Vector3(0.1f, (_audioPeer._audioBandBuffer64[i] * _maxScale) + 2 * 0.1f, 0.1f);
-                _cubesRight[_cubesRight.Length-1-i].transform.localScale = new Vector3(0.1f, (_audioPeer._audioBandBuffer64[i] * _maxScale) + 2 * 0.1f, 0.1f);
+                _cubesLeft[i].transform.localScale = new Vector3(0.1f, (_audioAnalyzer._audioBandBuffer64[i] * _maxScale) + 2 * 0.1f, 0.1f);
+                _cubesRight[_cubesRight.Length-1-i].transform.localScale = new Vector3(0.1f, (_audioAnalyzer._audioBandBuffer64[i] * _maxScale) + 2 * 0.1f, 0.1f);
 
             }
         }

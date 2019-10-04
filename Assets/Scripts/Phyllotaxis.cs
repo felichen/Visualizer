@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Phyllotaxis : MonoBehaviour
 {
-    public AudioPeer _audioPeer;
+    public AudioAnalyzer _audioAnalyzer;
     private Material _trailMat;
     public Color _trailcolor;
 
@@ -79,7 +79,7 @@ public class Phyllotaxis : MonoBehaviour
         {
             if (_useScaleCurve)
             {
-                _scaleTimer += (_scaleAnimSpeed * _audioPeer._audioBand[_scaleBand]) * Time.deltaTime;
+                _scaleTimer += (_scaleAnimSpeed * _audioAnalyzer._audioBand[_scaleBand]) * Time.deltaTime;
                 if (_scaleTimer >= 1)
                 {
                     _scaleTimer -= 1;
@@ -87,14 +87,14 @@ public class Phyllotaxis : MonoBehaviour
                 _currentScale = Mathf.Lerp(_scaleAnimMinMax.x, _scaleAnimMinMax.y, _scaleAnimCurve.Evaluate(_scaleTimer));
             } else
             {
-                _currentScale = Mathf.Lerp(_scaleAnimMinMax.x, _scaleAnimMinMax.y, _audioPeer._audioBand[_scaleBand]);
+                _currentScale = Mathf.Lerp(_scaleAnimMinMax.x, _scaleAnimMinMax.y, _audioAnalyzer._audioBand[_scaleBand]);
             }
         }
         if (_useLerping)
         {
             if (_isLerping)
             {
-                _lerpPosSpeed = Mathf.Lerp(_lerpPosSpeedMinMax.x, _lerpPosSpeedMinMax.y, _lerpPosAnimCurve.Evaluate(_audioPeer._audioBand[_lerpPosBand]));
+                _lerpPosSpeed = Mathf.Lerp(_lerpPosSpeedMinMax.x, _lerpPosSpeedMinMax.y, _lerpPosAnimCurve.Evaluate(_audioAnalyzer._audioBand[_lerpPosBand]));
                 _lerpPosTimer += Time.deltaTime * _lerpPosSpeed;
                 transform.localPosition = Vector3.Lerp(_startPosition, _endPosition, Mathf.Clamp01(_lerpPosTimer));
                 if (_lerpPosTimer >= 1)

@@ -8,7 +8,7 @@ using UnityEngine;
 //COLOR CHANGE BASED ON: different frequency bin spikes find colorchange)
 public class AudioVisual : MonoBehaviour
 {
-    public AudioPeer _audioPeer;
+    public AudioAnalyzer _audioAnalyzer;
     public Material matRef;
     ParticleSystem particles;
     ParticleSystemRenderer psRenderer;
@@ -180,7 +180,7 @@ public class AudioVisual : MonoBehaviour
             float sum = 0;
             for (int j = 0; j < averageSize; j++)
             {
-                sum += _audioPeer._samplesLeft[spectrumIndex];
+                sum += _audioAnalyzer._samplesLeft[spectrumIndex];
                 spectrumIndex++;
             }
 
@@ -217,15 +217,15 @@ public class AudioVisual : MonoBehaviour
 
     void UpdateRMS()
     {
-        rmsTransform[0].localScale = Vector3.one + Vector3.up * _audioPeer.RMS * 100;
-        dbTransform[0].localScale = Vector3.one + Vector3.up * Mathf.Abs(_audioPeer.DB) * 3;
+        rmsTransform[0].localScale = Vector3.one + Vector3.up * _audioAnalyzer.RMS * 100;
+        dbTransform[0].localScale = Vector3.one + Vector3.up * Mathf.Abs(_audioAnalyzer.DB) * 3;
         //check for negative infinity
-        if (double.IsNegativeInfinity(_audioPeer.DB))
+        if (double.IsNegativeInfinity(_audioAnalyzer.DB))
         {
             dbTransform[0].localScale = Vector3.one + Vector3.up * 0;
         }
 
-        pitchTransform[0].localScale = Vector3.one + Vector3.up * _audioPeer.PITCH / 100;
+        pitchTransform[0].localScale = Vector3.one + Vector3.up * _audioAnalyzer.PITCH / 100;
     }
 
     void UpdateFlying()

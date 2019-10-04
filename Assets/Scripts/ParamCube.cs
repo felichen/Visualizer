@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ParamCube : MonoBehaviour
 {
-    public AudioPeer _audioPeer;
+    public AudioAnalyzer _audioAnalyzer;
     public int _band;
     public float _startScale, _scaleMultiplier;
     public float currScale;
@@ -22,7 +22,7 @@ public class ParamCube : MonoBehaviour
         if (_useBuffer)
         {
             //transform.localScale = new Vector3(transform.localScale.x, (_audioPeer._bandBuffer[_band] * _scaleMultiplier) + _startScale, transform.localScale.z);
-            transform.localScale = new Vector3(transform.localScale.x, (_audioPeer._AmplitudeBuffer * _scaleMultiplier) + _startScale, transform.localScale.z);
+            transform.localScale = new Vector3(transform.localScale.x, (_audioAnalyzer._AmplitudeBuffer * _scaleMultiplier) + _startScale, transform.localScale.z);
             currScale = transform.localScale.y;
             //if (transform.localScale.y >= 10)
             //{
@@ -31,7 +31,7 @@ public class ParamCube : MonoBehaviour
             //set color intensitytoo
         } else
         {
-            transform.localScale = new Vector3(transform.localScale.x, (_audioPeer._freqBand[_band] * _scaleMultiplier) + _startScale, transform.localScale.z);
+            transform.localScale = new Vector3(transform.localScale.x, (_audioAnalyzer._freqBand[_band] * _scaleMultiplier) + _startScale, transform.localScale.z);
         }
     }
 }

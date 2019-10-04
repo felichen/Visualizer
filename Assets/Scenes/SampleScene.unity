@@ -132,7 +132,7 @@ GameObject:
   - component: {fileID: 329940242}
   - component: {fileID: 329940241}
   m_Layer: 0
-  m_Name: AudioPeer
+  m_Name: AudioAnalyzer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2435,7 +2435,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55f7a29e5af68504197953efb799f0b9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _audioPeer: {fileID: 329940241}
+  _audioAnalyzer: {fileID: 0}
   _trailcolor: {r: 1, g: 0.07058823, b: 0.78801286, a: 0.4627451}
   _degree: 2
   _scale: 0.05
@@ -2801,7 +2801,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c105611273ffca40b85328a0749ca33, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _audioPeer: {fileID: 329940241}
+  _audioAnalyzer: {fileID: 329940241}
   matRef: {fileID: 2100000, guid: a795bf36b792680418204d80f1bb51f4, type: 2}
   maxScale: 10
   visualModifier: 175
@@ -3088,7 +3088,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fea0e696a90ce1c498f61c36e39bae13, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _audioPeer: {fileID: 329940241}
+  _audioAnalyzer: {fileID: 0}
   _band: 1
   _startScale: 0.5
   _scaleMultiplier: 0.001
@@ -7857,7 +7857,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55f7a29e5af68504197953efb799f0b9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _audioPeer: {fileID: 329940241}
+  _audioAnalyzer: {fileID: 329940241}
   _trailcolor: {r: 1, g: 1, b: 1, a: 0.4627451}
   _degree: 1
   _scale: 0.1
@@ -8106,7 +8106,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 107313fca4d1a024cb82ffb68be8639c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _audioPeer: {fileID: 329940241}
+  _audioAnalyzer: {fileID: 329940241}
   _maxScale: 10
   visualModifier: 175
   smoothing: 20
@@ -8218,7 +8218,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11e5094ec18e3344ba798633166510e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _audioPeer: {fileID: 329940241}
+  _audioAnalyzer: {fileID: 0}
   _maxScale: 10
   visualModifier: 175
   smoothing: 20
@@ -13004,7 +13004,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fea0e696a90ce1c498f61c36e39bae13, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _audioPeer: {fileID: 329940241}
+  _audioAnalyzer: {fileID: 0}
   _band: 1
   _startScale: 0.5
   _scaleMultiplier: 0.001
@@ -13113,7 +13113,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1abc43bca1b1c4242a454c89119dd4ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _audioPeer: {fileID: 329940241}
+  _audioAnalyzer: {fileID: 0}
   _band: 1
   _startScale: 1
   _scaleMultiplier: 10

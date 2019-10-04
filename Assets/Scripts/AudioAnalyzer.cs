@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent (typeof (AudioSource))]
-public class AudioPeer : MonoBehaviour
+public class AudioAnalyzer : MonoBehaviour
 {
 
     //8 OR 64; THE FREQUENCY BANDS REPRESENTS SPECIFIC SUBSET OF FREQUENCIES, LIKE BASS, SUB-BASS, ETC

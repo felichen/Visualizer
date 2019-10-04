@@ -5,7 +5,7 @@ using UnityEngine;
 public class ParticleController : MonoBehaviour
 {
     ParticleSystem ps;
-    public AudioPeer _audioPeer;
+    public AudioAnalyzer _audioAnalyzer;
     public int _band;
     public float _startScale, _scaleMultiplier;
     // Start is called before the first frame update
@@ -20,7 +20,7 @@ public class ParticleController : MonoBehaviour
     {
         //transform.localScale = new Vector3(transform.localScale.x, (_audioPeer._bandBuffer[_band] * _scaleMultiplier) + _startScale, transform.localScale.z);
         var main = ps.main;
-        main.startSize = _audioPeer._AmplitudeBuffer * _scaleMultiplier +_startScale;
+        main.startSize = _audioAnalyzer._AmplitudeBuffer * _scaleMultiplier +_startScale;
         //sh.scale = new Vector3((_audioPeer._AmplitudeBuffer * _scaleMultiplier) + _startScale, (_audioPeer._AmplitudeBuffer * _scaleMultiplier) + (_audioPeer._AmplitudeBuffer * _scaleMultiplier) + _startScale);
     }
 }
