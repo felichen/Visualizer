@@ -10,14 +10,19 @@ public class AudioVisual : MonoBehaviour
 {
     public AudioAnalyzer _audioAnalyzer;
     public Material matRef;
+    public Material particleMat;
     ParticleSystem particles;
     ParticleSystemRenderer psRenderer;
+    public ParticleSystem emphasisEmitter;
     private const int SAMPLE_SIZE = 1024;
     public float maxScale = 10.0f;
     public float visualModifier = 175.0f;
     public float smoothing = 20.0f; //buffer for smoother animation
     public float keep = 0.1f;
     public float rotationSpeed = 10f;
+
+    //COLOR PALETTES
+    //purple
 
 
     //BEAT DETECTION
@@ -32,8 +37,10 @@ public class AudioVisual : MonoBehaviour
     //CIRCLE VISUALIZATION
     GameObject circleParent;
     private Transform[] cubeTransform; //contains transforms of cubes
+    private Transform[] emphasisTransform;
+    private GameObject[] emitters;
     private float[] scaleFactor;
-    private float cubeWidth = 0.2f;
+    private float cubeWidth = 0.3f;
     private int numVisObjects = 64; //amount of objects
 
     private Transform[] rmsTransform; //transform for rms
@@ -64,6 +71,7 @@ public class AudioVisual : MonoBehaviour
         particles = ps.GetComponent<ParticleSystem>();
         psRenderer = ps.GetComponent<ParticleSystemRenderer>();
 
+
         cameraTransform = GameObject.Find("Main Camera").transform;
 
         source = GetComponent<AudioSource>();
@@ -84,6 +92,8 @@ public class AudioVisual : MonoBehaviour
     {
         scaleFactor = new float[numVisObjects];
         cubeTransform = new Transform[numVisObjects];
+        emphasisTransform = new Transform[numVisObjects];
+        emitters = new GameObject[numVisObjects];
 
         Vector3 center = Vector3.zero;
         float radius = 10.0f;
@@ -103,6 +113,32 @@ public class AudioVisual : MonoBehaviour
             go.transform.position = pos;
             go.transform.localScale = new Vector3(cubeWidth, 1, 1);
             cubeTransform[i] = go.transform;
+
+            ////create emitter that comes out of bars in center visual
+            //create emitter that comes out of bars in center visual
+            var pgo = new GameObject("PS" + i);
+            pgo.AddComponent<ParticleSystem>();
+            ParticleSystem p = pgo.GetComponent<ParticleSystem>();
+
+            //set material
+            pgo.GetComponent<ParticleSystemRenderer>().material = particleMat;
+
+            //change shape
+            var shape = p.shape;
+            ParticleSystemShapeType mesh = ParticleSystemShapeType.Mesh;
+            shape.shapeType = mesh;
+            var main = p.main;
+            main.maxParticles = 1;
+            main.startSize = 0.5f;
+            //shape.angle = 0;
+            p.transform.parent = circleParent.transform;
+            p.transform.localPosition = go.transform.localPosition;
+            p.transform.localRotation = Quaternion.LookRotation(Vector3.forward, pos);
+            p.transform.Rotate(-90, 0, 0);
+            p.enableEmission = false;
+            //p.transform.localRotation = go.transform.localRotation;
+            emphasisTransform[i] = p.transform;
+            emitters[i] = pgo;
         }
     }
 
@@ -191,7 +227,10 @@ public class AudioVisual : MonoBehaviour
             //if going down, scale down smoothly
             if (scaleFactor[index] < scaleY)
                 scaleFactor[index] = scaleY;
-
+            if (scaleFactor[index] > 0.3 * maxScale)
+            {
+                emitParticles(index);
+            }
             //if at max size, snap up
             if (scaleFactor[index] > maxScale)
             {
@@ -199,6 +238,7 @@ public class AudioVisual : MonoBehaviour
                 if (index >= 5 && index <= 8)
                 {
                     changeColor(); //****************************************************************************************************************************************
+             
                 }
                 scaleFactor[index] = maxScale;
             }
@@ -209,9 +249,25 @@ public class AudioVisual : MonoBehaviour
         }
     }
 
+    void emitParticles(int i)
+    {
+        ParticleSystem ps = emitters[i].GetComponent<ParticleSystem>();
+        //emphasisTransform[i].parent = circleParent.transform;
+        //ps.transform.parent = circleParent.transform;
+        ps.enableEmission = true;
+        ps.Emit(1);
+        ps.enableEmission = false;
+
+        //detach from circle so emitter follows one path
+        //ps.transform.parent = null;
+    }
+
     void changeColor()
     {
         psRenderer.material.color = UnityEngine.Random.ColorHSV();
+        ParticleSystem.EmitParams emitOverride = new ParticleSystem.EmitParams();
+        emitOverride.startLifetime = 0.3f;
+        particles.Emit(1); 
         colorCubes[0].GetComponent<Renderer>().material.color = UnityEngine.Random.ColorHSV();
     }
 

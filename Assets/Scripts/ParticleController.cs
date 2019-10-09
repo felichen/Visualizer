@@ -5,6 +5,7 @@ using UnityEngine;
 public class ParticleController : MonoBehaviour
 {
     ParticleSystem ps;
+    ParticleSystem.Particle[] m_particles;
     public AudioAnalyzer _audioAnalyzer;
     public int _band;
     public float _startScale, _scaleMultiplier;
@@ -13,6 +14,9 @@ public class ParticleController : MonoBehaviour
     {
         GameObject particles = GameObject.Find("Particle System");
         ps = particles.GetComponent<ParticleSystem>();
+        var main = ps.main;
+        int num = main.maxParticles;
+        m_particles = new ParticleSystem.Particle[num];
     }
 
     // Update is called once per frame
@@ -20,7 +24,16 @@ public class ParticleController : MonoBehaviour
     {
         //transform.localScale = new Vector3(transform.localScale.x, (_audioPeer._bandBuffer[_band] * _scaleMultiplier) + _startScale, transform.localScale.z);
         var main = ps.main;
-        main.startSize = _audioAnalyzer._AmplitudeBuffer * _scaleMultiplier +_startScale;
+        float scale = _audioAnalyzer._AmplitudeBuffer * _scaleMultiplier +_startScale;
+
+        int numAlive = ps.GetParticles(m_particles);
+
+        for (int i = 0; i < numAlive; i++)
+        {
+            m_particles[i].startSize = scale; 
+        }
+
+        ps.SetParticles(m_particles, numAlive);
         //sh.scale = new Vector3((_audioPeer._AmplitudeBuffer * _scaleMultiplier) + _startScale, (_audioPeer._AmplitudeBuffer * _scaleMultiplier) + (_audioPeer._AmplitudeBuffer * _scaleMultiplier) + _startScale);
     }
 }
