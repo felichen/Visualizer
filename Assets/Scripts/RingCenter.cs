@@ -26,8 +26,11 @@ public class RingCenter : MonoBehaviour
     void Start()
     {
         //CREATE PARENT
+        this.transform.localRotation = Quaternion.identity;
         RingParent = this.transform.GetChild(0).gameObject;
         _sampleCube = new GameObject[numVisObjects];
+
+        RingParent.transform.Rotate(-15, 0, 0);
 
         //range is number of samples
         for (int i = 0; i < numVisObjects; i++)
@@ -36,7 +39,7 @@ public class RingCenter : MonoBehaviour
             GameObject _instanceSampleCube = GameObject.CreatePrimitive(PrimitiveType.Cube) as GameObject;
             _instanceSampleCube.transform.position = this.transform.position; //place in center of where it is spawned
             _instanceSampleCube.transform.parent = RingParent.transform;
-            _instanceSampleCube.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+            _instanceSampleCube.transform.localScale = new Vector3(cubeWidth, 0.1f, 0.1f);
             _instanceSampleCube.name = "SampleCube" + i;
 
             //position of cubes into a circle
@@ -44,7 +47,7 @@ public class RingCenter : MonoBehaviour
             //rotate around the y axis to form circle
             this.transform.eulerAngles = new Vector3(0, -a * i, 0);
             //radius of circle
-            _instanceSampleCube.transform.position = Vector3.forward * 10;
+            _instanceSampleCube.transform.position = Vector3.forward * 20;
             _sampleCube[i] = _instanceSampleCube;
         }
     }
@@ -52,6 +55,7 @@ public class RingCenter : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        Debug.Log(string.Format("hello {0}", this.transform.localRotation.y));
         for (int i = 0; i < numVisObjects; i++)
         {
             if (_sampleCube != null)

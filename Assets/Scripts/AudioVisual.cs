@@ -20,16 +20,23 @@ public class AudioVisual : MonoBehaviour
     public float smoothing = 20.0f; //buffer for smoother animation
     public float keep = 0.1f;
     public float rotationSpeed = 10f;
+    public float particleThreshold = 0.75f; //threshold for particles to emit out of ends of bars
+
+    public Color colone;
+    public Color coltwo;
+
 
     //COLOR PALETTES
     //purple
 
 
     //BEAT DETECTION
+    public float _startScale, _scaleMultiplier;
     public int bpm;
     public float currSongTime;
     public bool isOnBeat;
     public bool spike;
+
 
     private AudioSource source;
     public float[] spectrum;
@@ -38,7 +45,6 @@ public class AudioVisual : MonoBehaviour
     GameObject circleParent;
     private Transform[] cubeTransform; //contains transforms of cubes
     private Transform[] emphasisTransform;
-    private GameObject[] emitters;
     private float[] scaleFactor;
     private float cubeWidth = 0.3f;
     private int numVisObjects = 64; //amount of objects
@@ -63,14 +69,18 @@ public class AudioVisual : MonoBehaviour
     void Start()
     {
         GameObject.Find("Main Camera").transform.position = new Vector3(0, 0, -65);
-        GameObject.Find("Particle System").transform.position = new Vector3(0, 0, -30);
+        GameObject ps = GameObject.Find("Particle System");
+        if (ps != null)
+        {
+            ps.transform.position = new Vector3(0, 0, -30);
+            particles = ps.GetComponent<ParticleSystem>();
+            psRenderer = ps.GetComponent<ParticleSystemRenderer>();
+        }
         //CREATE PARENT
         circleParent = this.transform.GetChild(0).gameObject;
 
-        GameObject ps = GameObject.Find("Particle System");
-        particles = ps.GetComponent<ParticleSystem>();
-        psRenderer = ps.GetComponent<ParticleSystemRenderer>();
-
+        colone = new Color(1f, 73f / 255f, 250 / 255f);
+        coltwo = new Color(73 / 255f, 1f, 250 / 255f);
 
         cameraTransform = GameObject.Find("Main Camera").transform;
 
@@ -93,7 +103,6 @@ public class AudioVisual : MonoBehaviour
         scaleFactor = new float[numVisObjects];
         cubeTransform = new Transform[numVisObjects];
         emphasisTransform = new Transform[numVisObjects];
-        emitters = new GameObject[numVisObjects];
 
         Vector3 center = Vector3.zero;
         float radius = 10.0f;
@@ -112,6 +121,9 @@ public class AudioVisual : MonoBehaviour
             go.transform.rotation = Quaternion.LookRotation(Vector3.forward, pos);
             go.transform.position = pos;
             go.transform.localScale = new Vector3(cubeWidth, 1, 1);
+            Color col = new Color(1f - (0.01f * i), 0f + (2*Mathf.Sin(2*0.01f* i)), 0.01f*i, 1);
+            Color newcol = lerp((float)i / (numVisObjects);
+            go.GetComponent<Renderer>().material.color = newcol;
             cubeTransform[i] = go.transform;
 
             ////create emitter that comes out of bars in center visual
@@ -128,8 +140,8 @@ public class AudioVisual : MonoBehaviour
             ParticleSystemShapeType mesh = ParticleSystemShapeType.Mesh;
             shape.shapeType = mesh;
             var main = p.main;
-            main.maxParticles = 1;
-            main.startSize = 0.5f;
+            main.maxParticles = 50;
+            main.startSize = 0.3f;
             //shape.angle = 0;
             p.transform.parent = circleParent.transform;
             p.transform.localPosition = go.transform.localPosition;
@@ -138,8 +150,16 @@ public class AudioVisual : MonoBehaviour
             p.enableEmission = false;
             //p.transform.localRotation = go.transform.localRotation;
             emphasisTransform[i] = p.transform;
-            emitters[i] = pgo;
         }
+    }
+
+    Color lerp(float value)
+    {
+        //return new Color(colone.r * value + coltwo.r * (1 - value),
+        //            colone.g * value + coltwo.g * (1 - value),
+        //            colone.b * value + coltwo.b * (1 - value));
+        Debug.Log(string.Format("color: {0}", value));
+        return Color.Lerp(colone, coltwo, value);
     }
 
     void InstantiateRMSDBCube()
@@ -200,6 +220,9 @@ public class AudioVisual : MonoBehaviour
         //UpdateRMS();
         //UpdateFlying();
         //UpdateBeat();
+
+        float scale = _audioAnalyzer._AmplitudeBuffer * _scaleMultiplier + _startScale;
+        colorCubes[0].transform.localScale = new Vector3(scale, scale, scale);
     }
 
     void UpdateVisual() //modify scale of objects
@@ -227,7 +250,7 @@ public class AudioVisual : MonoBehaviour
             //if going down, scale down smoothly
             if (scaleFactor[index] < scaleY)
                 scaleFactor[index] = scaleY;
-            if (scaleFactor[index] > 0.3 * maxScale)
+            if (scaleFactor[index] > particleThreshold * maxScale)
             {
                 emitParticles(index);
             }
@@ -251,24 +274,17 @@ public class AudioVisual : MonoBehaviour
 
     void emitParticles(int i)
     {
-        ParticleSystem ps = emitters[i].GetComponent<ParticleSystem>();
-        //emphasisTransform[i].parent = circleParent.transform;
-        //ps.transform.parent = circleParent.transform;
-        ps.enableEmission = true;
+        ParticleSystem ps = emphasisTransform[i].gameObject.GetComponent<ParticleSystem>();
+        //ps.enableEmission = true;
         ps.Emit(1);
-        ps.enableEmission = false;
-
-        //detach from circle so emitter follows one path
-        //ps.transform.parent = null;
+        //ps.enableEmission = false;
     }
 
     void changeColor()
     {
-        psRenderer.material.color = UnityEngine.Random.ColorHSV();
-        ParticleSystem.EmitParams emitOverride = new ParticleSystem.EmitParams();
-        emitOverride.startLifetime = 0.3f;
-        particles.Emit(1); 
+        //psRenderer.material.color = UnityEngine.Random.ColorHSV();
         colorCubes[0].GetComponent<Renderer>().material.color = UnityEngine.Random.ColorHSV();
+
     }
 
     void UpdateRMS()

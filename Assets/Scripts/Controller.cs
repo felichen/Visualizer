@@ -7,6 +7,7 @@ public class Controller : MonoBehaviour
     public GameObject av;
     public GameObject pt;
     public GameObject bc;
+    public Transform[] children;
     public string a = "AudioVisual";
     public string p = "Phyllotaxis";
     // Start is called before the first frame update
@@ -20,9 +21,11 @@ public class Controller : MonoBehaviour
         GameObject barParent = bc.transform.GetChild(0).gameObject;
         barParent.SetActive(false);
 
-        //av = GameObject.Find("AudioVisual - Center");
-        //GameObject circleParent = av.transform.GetChild(0).gameObject;
-        //circleParent.SetActive(true);
+        av = GameObject.Find("AudioVisual - Center");
+        GameObject circleParent = av.transform.GetChild(0).gameObject;
+        circleParent.SetActive(true);
+
+        children = circleParent.GetComponentsInChildren<Transform>();
 
     }
 
@@ -41,6 +44,18 @@ public class Controller : MonoBehaviour
             if (circleParent.activeSelf)
             {
                 circleParent.SetActive(false);
+                foreach (Transform child in children)
+                {
+                    var name = child.gameObject.name;
+                    if (name.Substring(0,2) == "PS")
+                    {
+                        child.gameObject.SetActive(false);
+                        ParticleSystem ps = child.gameObject.GetComponent<ParticleSystem>();
+                        ps.enableEmission = false;
+                        ps.Stop(true);
+                    }
+                    
+                }
                 phylloParent.SetActive(true);
                 barParent.SetActive(false);
             } else if (phylloParent.activeSelf)
@@ -48,10 +63,31 @@ public class Controller : MonoBehaviour
                 barParent.SetActive(true);
                 phylloParent.SetActive(false);
                 circleParent.SetActive(false);
+                foreach (Transform child in children)
+                {
+                    var name = child.gameObject.name;
+                    if (name.Substring(0, 2) == "PS")
+                    {
+                        child.gameObject.SetActive(false);
+                        ParticleSystem ps = child.gameObject.GetComponent<ParticleSystem>();
+                        ps.enableEmission = false;
+                        ps.Stop(true);
+                    }
+                }
             }
             else if (barParent.activeSelf)
             {
                 circleParent.SetActive(true);
+                foreach (Transform child in children)
+                {
+                    var name = child.gameObject.name;
+                    if (name.Substring(0, 2) == "PS")
+                    {
+                        child.gameObject.SetActive(true);
+                        ParticleSystem ps = child.gameObject.GetComponent<ParticleSystem>();
+                        ps.enableEmission = false;
+                    }
+                }
                 phylloParent.SetActive(false);
                 barParent.SetActive(false);
             }

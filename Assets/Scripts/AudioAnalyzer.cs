@@ -49,7 +49,11 @@ public class AudioAnalyzer : MonoBehaviour
     void Start()
     {
         GameObject.Find("Main Camera").transform.position = new Vector3(0, 0, -65);
-        GameObject.Find("Particle System").transform.position = new Vector3(0, 0, -30);
+        GameObject ps = GameObject.Find("Particle System");
+        if (ps != null)
+        {
+            ps.transform.position = new Vector3(0, 0, -30);
+        }
         _audioBand = new float[8];
         _audioBandBuffer = new float[8];
         _audioBand64 = new float[64];
