@@ -122,7 +122,7 @@ public class AudioVisual : MonoBehaviour
             go.transform.position = pos;
             go.transform.localScale = new Vector3(cubeWidth, 1, 1);
             Color col = new Color(1f - (0.01f * i), 0f + (2*Mathf.Sin(2*0.01f* i)), 0.01f*i, 1);
-            Color newcol = lerp((float)i / (numVisObjects);
+            Color newcol = lerp((float)i / numVisObjects);
             go.GetComponent<Renderer>().material.color = newcol;
             cubeTransform[i] = go.transform;
 

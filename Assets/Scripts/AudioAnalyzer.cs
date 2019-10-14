@@ -7,7 +7,7 @@ public class AudioAnalyzer : MonoBehaviour
 {
 
     //8 OR 64; THE FREQUENCY BANDS REPRESENTS SPECIFIC SUBSET OF FREQUENCIES, LIKE BASS, SUB-BASS, ETC
-    AudioSource _audioSource;
+    public AudioSource _audioSource;
     public float[] _samplesLeft = new float[1024];
     public float[] _samplesRight = new float[1024];
 
