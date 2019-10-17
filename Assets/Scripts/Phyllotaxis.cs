@@ -75,6 +75,7 @@ public class Phyllotaxis : MonoBehaviour
 
     private void Update()
     {
+        _trailMat.SetColor("_TintColor", _trailcolor);
         if (_useScaleAnimation)
         {
             if (_useScaleCurve)

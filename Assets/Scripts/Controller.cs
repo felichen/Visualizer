@@ -8,10 +8,13 @@ public class Controller : MonoBehaviour
 {
     public Slider progressbar;
     public AudioAnalyzer _audioAnalyzer;
+    public AudioVisual _audioVisual;
+    public BarsCenter _barsCenter;
     AudioSource _audioSource;
     float audioLength;
 
     public TMPro.TMP_Dropdown centerOptions;
+    public TMPro.TMP_Dropdown freqOptions;
 
 
     public GameObject av;
@@ -30,16 +33,19 @@ public class Controller : MonoBehaviour
         //add center options
         List<string> center_options = new List<string>() { "Circle", "Travel", "Bars" };
         centerOptions.AddOptions(center_options);
+        //add frequency options
+        List<string> freq_options = new List<string>() { "Low", "Medium", "High" };
+        freqOptions.AddOptions(freq_options);
 
-        pt = GameObject.Find("Phyllotaxis - Center");
+        //pt = GameObject.Find("Phyllotaxis - Center");
         GameObject phylloParent = pt.transform.GetChild(0).gameObject;
         phylloParent.SetActive(false);
 
-        bc = GameObject.Find("Bars - Center");
+        //bc = GameObject.Find("Bars - Center");
         GameObject barParent = bc.transform.GetChild(0).gameObject;
         barParent.SetActive(false);
 
-        av = GameObject.Find("AudioVisual - Center");
+        //av = GameObject.Find("AudioVisual - Center");
         GameObject circleParent = av.transform.GetChild(0).gameObject;
         circleParent.SetActive(true);
 
@@ -49,11 +55,11 @@ public class Controller : MonoBehaviour
 
     public void centerOption_changed(int index)
     {
-        av = GameObject.Find("AudioVisual - Center");
+        //av = GameObject.Find("AudioVisual - Center");
         GameObject circleParent = av.transform.GetChild(0).gameObject;
-        pt = GameObject.Find("Phyllotaxis - Center");
+        //pt = GameObject.Find("Phyllotaxis - Center");
         GameObject phylloParent = pt.transform.GetChild(0).gameObject;
-        bc = GameObject.Find("Bars - Center");
+        //bc = GameObject.Find("Bars - Center");
         GameObject barParent = bc.transform.GetChild(0).gameObject;
 
         if (index == 1)
@@ -119,6 +125,32 @@ public class Controller : MonoBehaviour
         //    //(pt.GetComponent(p) as MonoBehaviour).enabled = false;
         //}
 
+    }
+
+    public void freqOption_changed(int index)
+    {
+        if (index == 0) //sub bass
+        {
+            _audioVisual.keep = 0.1f;
+            _barsCenter.start = 0;
+        }
+        else if (index == 1) //bass
+        {
+            _audioVisual.keep = 0.3f;
+            _barsCenter.start = 16;
+        }
+        else if (index == 2) //upper bass
+        {
+            _audioVisual.keep = 0.5f;
+            _barsCenter.start = 32;
+        }
+        //else if (index == 3) //midrange
+        //{
+        //    _audioVisual.keep = 0.4f;
+        //} else if (index == 4) // uppder midrange
+        //{
+        //    _audioVisual.keep = 0.5f;
+        //}
     }
 
     // Update is called once per frame

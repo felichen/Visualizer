@@ -9,18 +9,20 @@ using UnityEngine;
 public class AudioVisual : MonoBehaviour
 {
     public AudioAnalyzer _audioAnalyzer;
+    public Phyllotaxis _phyllotaxis;
     public Material matRef;
     public Material particleMat;
     ParticleSystem particles;
     ParticleSystemRenderer psRenderer;
     public ParticleSystem emphasisEmitter;
+    float particleSize = 0.25f;
     private const int SAMPLE_SIZE = 1024;
-    public float maxScale = 10.0f;
-    public float visualModifier = 175.0f;
-    public float smoothing = 20.0f; //buffer for smoother animation
+    float maxScale = 10.0f;
+    float visualModifier = 175.0f;
+    float smoothing = 20.0f; //buffer for smoother animation
     public float keep = 0.1f;
-    public float rotationSpeed = 10f;
-    public float particleThreshold = 0.75f; //threshold for particles to emit out of ends of bars
+    float rotationSpeed = 10f;
+    float particleThreshold = 0.5f; //threshold for particles to emit out of ends of bars
 
     public Color colone;
     public Color coltwo;
@@ -68,7 +70,7 @@ public class AudioVisual : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        GameObject.Find("Main Camera").transform.position = new Vector3(0, 0, -65);
+        GameObject.Find("Main Camera").transform.position = new Vector3(0, 0, -75);
         GameObject ps = GameObject.Find("Particle System");
         if (ps != null)
         {
@@ -85,14 +87,13 @@ public class AudioVisual : MonoBehaviour
         cameraTransform = GameObject.Find("Main Camera").transform;
 
         source = GetComponent<AudioSource>();
-        spectrum = new float[SAMPLE_SIZE];
+        //spectrum = new float[SAMPLE_SIZE];
 
 
         InstantiateCircle(); //creates circle at center of screen
         InstantiateRMSDBCube();
         //InstantiateFlying();
 
-        bpm = BPMAnalyzer.AnalyzeBpm(source.clip);
 
         Debug.Log(string.Format("what is bpm: {0}", bpm));
 
@@ -121,7 +122,7 @@ public class AudioVisual : MonoBehaviour
             go.transform.rotation = Quaternion.LookRotation(Vector3.forward, pos);
             go.transform.position = pos;
             go.transform.localScale = new Vector3(cubeWidth, 1, 1);
-            Color col = new Color(1f - (0.01f * i), 0f + (2*Mathf.Sin(2*0.01f* i)), 0.01f*i, 1);
+            //Color col = new Color(1f - (0.01f * i), 0f + (2*Mathf.Sin(2*0.01f* i)), 0.01f*i, 1);
             Color newcol = lerp((float)i / numVisObjects);
             go.GetComponent<Renderer>().material.color = newcol;
             cubeTransform[i] = go.transform;
@@ -141,7 +142,8 @@ public class AudioVisual : MonoBehaviour
             shape.shapeType = mesh;
             var main = p.main;
             main.maxParticles = 50;
-            main.startSize = 0.3f;
+            main.startSize = particleSize;
+            main.startColor = newcol;
             //shape.angle = 0;
             p.transform.parent = circleParent.transform;
             p.transform.localPosition = go.transform.localPosition;
@@ -153,7 +155,7 @@ public class AudioVisual : MonoBehaviour
         }
     }
 
-    Color lerp(float value)
+    public Color lerp(float value)
     {
         //return new Color(colone.r * value + coltwo.r * (1 - value),
         //            colone.g * value + coltwo.g * (1 - value),
@@ -252,7 +254,11 @@ public class AudioVisual : MonoBehaviour
                 scaleFactor[index] = scaleY;
             if (scaleFactor[index] > particleThreshold * maxScale)
             {
-                emitParticles(index);
+                if (circleParent.activeSelf == true)
+                {
+                    emitParticles(index);
+                }
+
             }
             //if at max size, snap up
             if (scaleFactor[index] > maxScale)
@@ -283,7 +289,9 @@ public class AudioVisual : MonoBehaviour
     void changeColor()
     {
         //psRenderer.material.color = UnityEngine.Random.ColorHSV();
-        colorCubes[0].GetComponent<Renderer>().material.color = UnityEngine.Random.ColorHSV();
+        float val = Random.Range(0.0f, 1.0f);
+        colorCubes[0].GetComponent<Renderer>().material.color = lerp(val);
+        _phyllotaxis._trailcolor = lerp(val);
 
     }
 
@@ -309,25 +317,6 @@ public class AudioVisual : MonoBehaviour
         }
     }
 
-    void UpdateBeat()
-    {
-        //if (AudioProcessor.isOnBeat == true)
-        //    beatTransform[0].localScale = Vector3.one + Vector3.up *5;
-        //else
-        //    beatTransform[0].localScale = Vector3.one + Vector3.up * 1;
-
-        //USE FIRST ONE
-        if (SpectralFluxAnalyzer.isOnBeat == true)
-            colorCubes[0].GetComponent<Renderer>().material.color = UnityEngine.Random.ColorHSV();
-        //if (spike == true)
-        //{
-        //    colorCubes[0].GetComponent<Renderer>().material.color = UnityEngine.Random.ColorHSV();
-        //}
-        //if (onBeat() == true)
-        //{
-        //    colorCubes[0].GetComponent<Renderer>().material.color = UnityEngine.Random.ColorHSV();
-        //}
-    }
 
 
     bool onBeat()

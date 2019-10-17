@@ -56,6 +56,7 @@ public class RingCenter : MonoBehaviour
     void Update()
     {
         Debug.Log(string.Format("hello {0}", this.transform.localRotation.y));
+
         for (int i = 0; i < numVisObjects; i++)
         {
             if (_sampleCube != null)
