@@ -180,6 +180,33 @@ public class BarsCenter : MonoBehaviour
             emphasisTransformRightDown[i] = pd.transform;
         }
     }
+
+    public void setColors()
+    {
+        for (int i = 0; i < numVisObjects; i++)
+        {
+            Color newcol = _audioVisual.lerp((float)i / numVisObjects);
+            _cubesLeft[i].GetComponent<Renderer>().material.color = newcol;
+            ParticleSystem ps = emphasisTransformLeftUp[i].gameObject.GetComponent<ParticleSystem>();
+            var p = ps.main;
+            p.startColor = newcol;
+            ParticleSystem psd = emphasisTransformLeftDown[i].gameObject.GetComponent<ParticleSystem>();
+            var pd = psd.main;
+            pd.startColor = newcol;
+        }
+        for (int i = 0; i < numVisObjects; i++)
+        {
+            Color newcol = _audioVisual.lerp((float)(numVisObjects - i) / numVisObjects);
+            _cubesRight[i].GetComponent<Renderer>().material.color = newcol;
+            ParticleSystem ps = emphasisTransformRightUp[i].gameObject.GetComponent<ParticleSystem>();
+            var p = ps.main;
+            p.startColor = newcol;
+            ParticleSystem psd = emphasisTransformRightDown[i].gameObject.GetComponent<ParticleSystem>();
+            var pd = psd.main;
+            pd.startColor = newcol;
+        }
+
+    }
     // Update is called once per frame
     void Update()
     {

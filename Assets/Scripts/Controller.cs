@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-
+using System.Linq;
 public class Controller : MonoBehaviour
 {
     public Slider progressbar;
     public AudioAnalyzer _audioAnalyzer;
+    public Canvas fcp1;
+    public Canvas fcp2;
+    public Canvas menuItems;
     public AudioVisual _audioVisual;
     public BarsCenter _barsCenter;
     AudioSource _audioSource;
@@ -15,6 +18,9 @@ public class Controller : MonoBehaviour
 
     public TMPro.TMP_Dropdown centerOptions;
     public TMPro.TMP_Dropdown freqOptions;
+    public Button colorOne;
+    public Button colorTwo;
+    public Button Menu;
 
 
     public GameObject av;
@@ -50,6 +56,10 @@ public class Controller : MonoBehaviour
         circleParent.SetActive(true);
 
         children = circleParent.GetComponentsInChildren<Transform>();
+
+        fcp1.gameObject.SetActive(false);
+        fcp2.gameObject.SetActive(false);
+        menuItems.gameObject.SetActive(false);
 
     }
 
@@ -165,4 +175,42 @@ public class Controller : MonoBehaviour
         float currTime = _audioSource.time;
         progressbar.value = currTime / audioLength;
     }
+
+    public void colorOne_changed()
+    {
+        if (fcp1.gameObject.activeSelf == true)
+        {
+            fcp1.gameObject.SetActive(false);
+        } else
+        {
+            fcp1.gameObject.SetActive(true);
+            fcp2.gameObject.SetActive(false);
+        }
+    }
+
+    public void colorTwo_changed()
+    {
+        if (fcp2.gameObject.activeSelf == true)
+        {
+            fcp2.gameObject.SetActive(false);
+        }
+        else
+        {
+            fcp2.gameObject.SetActive(true);
+            fcp1.gameObject.SetActive(false);
+        }
+    }
+
+    public void onMenuClick()
+    {
+        if (menuItems.gameObject.activeSelf == false)
+        {
+            menuItems.gameObject.SetActive(true);
+        } else
+        {
+            menuItems.gameObject.SetActive(false);
+        }
+       
+    }
+
 }

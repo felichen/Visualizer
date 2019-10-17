@@ -94,9 +94,6 @@ public class AudioVisual : MonoBehaviour
         InstantiateRMSDBCube();
         //InstantiateFlying();
 
-
-        Debug.Log(string.Format("what is bpm: {0}", bpm));
-
     }
 
     void InstantiateCircle()
@@ -160,7 +157,6 @@ public class AudioVisual : MonoBehaviour
         //return new Color(colone.r * value + coltwo.r * (1 - value),
         //            colone.g * value + coltwo.g * (1 - value),
         //            colone.b * value + coltwo.b * (1 - value));
-        Debug.Log(string.Format("color: {0}", value));
         return Color.Lerp(colone, coltwo, value);
     }
 
@@ -236,6 +232,7 @@ public class AudioVisual : MonoBehaviour
         //only keep certain percentage so not every bar is flat/boring
         int averageSize = (int)((SAMPLE_SIZE * keep) / numVisObjects);
 
+
         while (index < numVisObjects)
         {
             float sum = 0;
@@ -275,7 +272,20 @@ public class AudioVisual : MonoBehaviour
             //Vector3 newTrans = new Vector3(0.5f, 1, 1);
             cubeTransform[index].localScale = new Vector3(cubeWidth, 1, 1) + Vector3.up * scaleFactor[index];
             index++;
+
         }
+    }
+
+    public void setColors()
+    {
+        for (int i = 0; i < numVisObjects; i++) {
+            Color newcol = lerp((float)i / numVisObjects);
+            cubeTransform[i].GetComponent<Renderer>().material.color = newcol;
+            ParticleSystem ps = emphasisTransform[i].gameObject.GetComponent<ParticleSystem>();
+            var p = ps.main;
+            p.startColor = newcol;
+        }
+
     }
 
     void emitParticles(int i)
